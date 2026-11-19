@@ -2,7 +2,7 @@
 
 Recipients install the Windows app and use the browser viewer. They never need Docker, Node, certificates or port forwarding.
 
-**Outstanding step:** deploy this relay and viewer to one publicly reachable HTTPS origin, then enter the real address in desktop Settings. No account, domain, deployment credentials, signing identity or physical phone was supplied. Nothing has been deployed to a public URL.
+**Existing deployment:** https://studybridge-eczn.onrender.com. The GitHub repository is lenthix/studybridge; Render builds the StudyBridge-1.0.0-Source directory on main. Keep that directory name when updating its contents to 1.1.0. A redeploy resets pairings. Both desktop and relay/viewer must be updated for phone-triggered scans.
 
 ## Managed hosting without buying a domain
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Engine} from '../src/engine';
 import {Settings,validateAnswer,Question,Answer,toWireSnapshot,fromWireSnapshot,type QuestionData,type AnswerData} from '../src/shared';
 const q=(kind:QuestionData['kind']='short',text='What is two plus two?'):QuestionData=>({kind,text,choices:[],fields:[],passage:'',visualDescription:'',imageRefs:[],missingInformation:false});
-const a=():AnswerData=>({answer:'4',choiceIndices:[],selectedChoices:[],fields:[],explanation:'Two plus two is four.',confidence:.95,needsReview:false});
+const a=():AnswerData=>({answer:'4',choiceIndices:[],selectedChoices:[],fields:[],confidence:.95,needsReview:false});
 const m={label:'Test source',text:'What is two plus two?',images:[]};
 const delay=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 async function waitFor(fn:()=>boolean){for(let i=0;i<100;i++){if(fn())return;await delay(5);}throw Error('Condition not reached');}

@@ -1,26 +1,26 @@
-# StudyBridge 1.0.0
+# StudyBridge 1.1.0
 
 A Windows desktop study companion built with Electron, TypeScript and React. Choose material, approve sharing, and receive numbered suggested answers locally or on an approved phone. The app never fills or submits website answers and never controls an external browser.
 
 ## Recipient installation
 
-Open `release/1.0.0/StudyBridge-1.0.0-Setup.exe`. The installer bundles the runtime, provides a Start-menu entry, an optional desktop shortcut and a Windows uninstall entry. The portable alternative is `StudyBridge-1.0.0-Portable.exe`. Recipients need no developer tools.
+Open `release/1.1.0/StudyBridge-1.1.0-Setup.exe`. The installer bundles the runtime, provides a Start-menu entry, an optional desktop shortcut and a Windows uninstall entry. The portable alternative is `StudyBridge-1.1.0-Portable.exe`. Recipients need no developer tools.
 
 **Both builds are unsigned.** No signing identity was available. Windows may display publisher or reputation warnings. This project does not recommend bypassing Windows security warnings; obtain a signed release from a trusted maintainer if required by your policy.
 
 Launch StudyBridge, complete the welcome screen, and add your own OpenAI API key in Settings. The suggested model is `gpt-5.4-mini`; it is configurable. A ChatGPT subscription does not itself supply API credits. Set request and spending limits to suit your account.
 
-Choose a screen/window from the visual picker, import images or a PDF, or paste text. Review the source preview and consent notice, then click Start. Continuous mode samples the selected source at the configured interval. Pause stops captures and queue dispatch; in-flight work may finish. Stop cancels in-flight work and prevents late results from being accepted. The top bar always has Stop. Start a new session to reset its request and spending counters.
+Choose a screen/window from the visual picker, import images or a PDF, or paste text. Review the source preview and consent notice. For a screen/window, click Enable phone scans, then tap Scan now on your approved phone for each snapshot. Nothing is captured on a timer. Imported material and pasted text still use Start. Pause stops captures and queue dispatch; in-flight work may finish. Stop cancels in-flight work and prevents late results from being accepted. The top bar always has Stop. Start a new session to reset its request and spending counters.
 
 ## Phone pairing
 
-The viewer is not yet deployed: the owner does not currently have a hosting account or domain. Desktop-only study does not depend on hosting.
+The existing viewer is https://studybridge-eczn.onrender.com. Upgrade both desktop and hosted source to 1.1.0 for the phone scan button. Desktop-only imported material does not depend on hosting.
 
 A maintainer must deploy the included relay/viewer once, following [DEPLOYMENT.md](DEPLOYMENT.md). Managed hosting can supply an HTTPS address without buying a domain. Put the actual deployed origin in Settings; no production address is invented or hardcoded.
 
 Click Connect phone. Scan the QR, or open that hosted address on a phone and type the ten-character join code. Enter a phone name. Compare the verification number on both screens and approve on the desktop. The code is valid for five minutes and consumed on the first join attempt. Use New join code for each additional device. Sessions expire after two hours. Use Revoke or Disconnect all phones to remove access.
 
-The viewer includes stable ordering, search, bookmarks, needs-review filtering, previous/next, optional follow-newest, explanations, code blocks, equations and source images. Bookmarks are temporary UI state. Pairing credentials live in phone tab session storage; no AI key is transmitted. Reconnects replace the current versioned snapshot rather than appending duplicate answers. A relay restart expires all sessions and requires pairing again.
+The viewer includes stable ordering, search, bookmarks, needs-review filtering, previous/next, optional follow-newest, plain answers, code blocks, equations and source images. Bookmarks are temporary UI state. Pairing credentials live in phone tab session storage; no AI key is transmitted. Reconnects replace the current versioned snapshot rather than appending duplicate answers. A relay restart expires all sessions and requires pairing again.
 
 ## Privacy and limits
 

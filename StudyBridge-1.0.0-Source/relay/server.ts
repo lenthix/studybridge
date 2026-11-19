@@ -7,9 +7,9 @@ import {z} from 'zod';
 import {Question,Answer,Material} from '../src/shared';
 const token=()=>randomBytes(32).toString('base64url');
 const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
-const SnapshotSchema=z.object({assets:z.record(z.string(),z.string().max(12_000_000).regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/)),sessionId:z.string().max(100),revision:z.number().int().nonnegative(),status:z.string().max(300),items:z.array(z.object({id:z.string().max(100),number:z.number().int(),status:z.enum(['discovered','processing','answered','failed','cancelled']),question:Question,passageRef:z.string().max(100).optional(),answer:Answer.optional(),error:z.string().max(1000).optional(),material:Material.omit({images:true}).extend({images:z.array(z.object({id:z.string().max(100),data:z.string().regex(/^asset:[0-9]+$/)})).max(20)})})).max(500),batches:z.array(z.object({id:z.string(),label:z.string(),status:z.string(),error:z.string().optional()})).max(100),requests:z.number(),reserved:z.number(),estimated:z.number(),capture:z.boolean(),source:z.string().max(300),preview:z.string().max(12_000_000)});
+const SnapshotSchema=z.object({assets:z.record(z.string(),z.string().max(12_000_000).regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/)),sessionId:z.string().max(100),revision:z.number().int().nonnegative(),status:z.string().max(300),items:z.array(z.object({id:z.string().max(100),number:z.number().int(),status:z.enum(['discovered','processing','answered','failed','cancelled']),question:Question,passageRef:z.string().max(100).optional(),answer:Answer.optional(),error:z.string().max(1000).optional(),material:Material.omit({images:true}).extend({images:z.array(z.object({id:z.string().max(100),data:z.string().regex(/^asset:[0-9]+$/)})).max(20)})})).max(500),batches:z.array(z.object({id:z.string(),label:z.string(),status:z.string(),error:z.string().optional()})).max(100),requests:z.number(),reserved:z.number(),estimated:z.number(),capture:z.boolean(),source:z.string().max(300),preview:z.string().max(12_000_000),phoneReady:z.boolean().optional(),captureToken:z.string().max(100).optional(),lastScanId:z.string().max(100).optional()});
 type Device={id:string;name:string;proof:string;secret:string;approved:boolean;expires:number;sockets:Set<WebSocket>};
-type Session={id:string;secret:string;expires:number;code:string;codeExpires:number;devices:Map<string,Device>;snapshot:any;seen:number;bytes:number};
+type Session={id:string;secret:string;expires:number;code:string;codeExpires:number;devices:Map<string,Device>;snapshot:any;seen:number;bytes:number;pendingScan?:{id:string;device:string;sessionId:string;captureToken:string;expires:number};scanIds:Set<string>;lastScan:number};
 export function createRelay(options:{origin?:string;now?:()=>number;ttl?:number;codeTtl?:number;staticDir?:string}={}){
   const now=options.now||Date.now,ttl=options.ttl||7200000,codeTtl=options.codeTtl||300000;
   const sessions=new Map<string,Session>(),buckets=new Map<string,{n:number;at:number}>();
@@ -22,12 +22,31 @@ export function createRelay(options:{origin?:string;now?:()=>number;ttl?:number;
   const owner=(req:any,res:any,next:any)=>{const s=live(sessions.get(req.params.id));if(!s||bearer(req)!==s.secret)return res.sendStatus(401);req.study=s;next();};
   function broadcast(s:Session,statusOnly=false){for(const d of s.devices.values())if(d.approved)for(const ws of d.sockets)if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:statusOnly?'status':'snapshot',snapshot:statusOnly?undefined:s.snapshot,desktopOnline:now()-s.seen<45000}));}
   function close(s:Session){for(const d of s.devices.values())for(const ws of d.sockets)ws.close(4001,'Session expired or disconnected');sessions.delete(s.id);}
+  function claimScan(s:Session){
+    const scan=s.pendingScan;s.pendingScan=undefined;
+    if(!scan||scan.expires<=now()||!s.devices.get(scan.device)?.approved||!s.snapshot?.phoneReady||scan.sessionId!==s.snapshot.sessionId||scan.captureToken!==s.snapshot.captureToken)return null;
+    return scan;
+  }
+  api.post('/api/sessions/:id/devices/:device/scan',(req,res)=>{
+    const s=live(sessions.get(req.params.id)),d=s?.devices.get(req.params.device);
+    if(!s||!d||!d.approved||d.secret!==bearer(req))return res.sendStatus(401);
+    const p=z.object({id:z.string().uuid(),sessionId:z.string().min(1).max(100),captureToken:z.string().uuid()}).strict().safeParse(req.body);
+    if(!p.success)return res.sendStatus(400);
+    const dedup=d.id+':'+p.data.id;
+    if(s.scanIds.has(dedup))return res.json({queued:true,duplicate:true});
+    if(now()-s.seen>15000)return res.status(409).json({error:'Computer is offline. Open StudyBridge and try again.'});
+    if(!s.snapshot?.phoneReady||s.snapshot.sessionId!==p.data.sessionId||s.snapshot.captureToken!==p.data.captureToken)return res.status(409).json({error:'Select a source and enable phone scans on the computer, or wait for the current scan to finish.'});
+    if((s.pendingScan&&s.pendingScan.expires>now())||now()-s.lastScan<3000)return res.status(429).json({error:'A scan is already requested. Please wait.'});
+    if(s.scanIds.size>=200)return res.status(429).json({error:'Scan limit reached. Connect a new phone session.'});
+    s.scanIds.add(dedup);s.lastScan=now();s.pendingScan={...p.data,device:d.id,expires:now()+15000};
+    res.json({queued:true});
+  });
   api.get('/health',(_q,r)=>r.json({ok:true}));
-  api.post('/api/sessions',(req,res)=>{if(sessions.size>=20)return res.sendStatus(503);const secret=token(),id=token(),s:Session={id,secret:digest(secret),expires:now()+ttl,code:randomBytes(5).toString('hex').toUpperCase(),codeExpires:now()+codeTtl,devices:new Map(),snapshot:null,seen:now(),bytes:0};sessions.set(id,s);res.json({id,secret,code:s.code,expires:s.expires,codeExpires:s.codeExpires});});
+  api.post('/api/sessions',(req,res)=>{if(sessions.size>=20)return res.sendStatus(503);const secret=token(),id=token(),s:Session={id,secret:digest(secret),expires:now()+ttl,code:randomBytes(5).toString('hex').toUpperCase(),codeExpires:now()+codeTtl,devices:new Map(),snapshot:null,seen:now(),bytes:0,scanIds:new Set(),lastScan:-Infinity};sessions.set(id,s);res.json({id,secret,code:s.code,expires:s.expires,codeExpires:s.codeExpires});});
   api.post('/api/sessions/:id/code',owner,(req:any,res)=>{const s=req.study as Session;s.code=randomBytes(5).toString('hex').toUpperCase();s.codeExpires=now()+codeTtl;res.json({code:s.code,codeExpires:s.codeExpires});});
   api.get('/api/sessions/:id/devices',owner,(req:any,res)=>res.json([...req.study.devices.values()].map((d:any)=>({id:d.id,name:d.name,proof:d.proof,approved:d.approved}))));
-  api.post('/api/sessions/:id/heartbeat',owner,(req:any,res)=>{req.study.seen=now();res.json({ok:true});});
-  api.post('/api/sessions/:id/snapshot',owner,(req:any,res)=>{const p=SnapshotSchema.safeParse(req.body);if(!p.success||p.data.items.some(i=>i.material.images.some(im=>!p.data.assets[im.data])))return res.sendStatus(400);const s=req.study as Session;const size=Buffer.byteLength(JSON.stringify(p.data));if([...sessions.values()].reduce((sum,item)=>sum+item.bytes,0)-s.bytes+size>64_000_000)return res.status(503).json({error:'Relay memory limit reached. Try a smaller session.'});s.bytes=size;if(!s.snapshot||s.snapshot.sessionId!==p.data.sessionId||p.data.revision>=s.snapshot.revision)s.snapshot=p.data;s.seen=now();broadcast(s);res.json({ok:true});});
+  api.post('/api/sessions/:id/heartbeat',owner,(req:any,res)=>{req.study.seen=now();res.json({ok:true,scan:claimScan(req.study)});});
+  api.post('/api/sessions/:id/snapshot',owner,(req:any,res)=>{const p=SnapshotSchema.safeParse(req.body);if(!p.success||p.data.items.some(i=>i.material.images.some(im=>!p.data.assets[im.data])))return res.sendStatus(400);const s=req.study as Session;const size=Buffer.byteLength(JSON.stringify(p.data));if([...sessions.values()].reduce((sum,item)=>sum+item.bytes,0)-s.bytes+size>64_000_000)return res.status(503).json({error:'Relay memory limit reached. Try a smaller session.'});s.bytes=size;if(!s.snapshot||s.snapshot.sessionId!==p.data.sessionId||p.data.revision>=s.snapshot.revision)s.snapshot=p.data;s.seen=now();broadcast(s);res.json({ok:true,scan:claimScan(s)});});
   api.post('/api/sessions/:id/devices/:device/approve',owner,(req:any,res)=>{const s=req.study as Session,d=s.devices.get(req.params.device);if(!d||d.expires<now())return res.sendStatus(404);d.approved=true;broadcast(s);res.json({ok:true});});
   api.delete('/api/sessions/:id/devices/:device',owner,(req:any,res)=>{const s=req.study as Session,d=s.devices.get(req.params.device);if(d){for(const ws of d.sockets)ws.close(4003,'Access revoked');s.devices.delete(d.id);}res.json({ok:true});});
   api.delete('/api/sessions/:id',owner,(req:any,res)=>{close(req.study);res.json({ok:true});});
