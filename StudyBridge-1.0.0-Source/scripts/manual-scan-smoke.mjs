@@ -31,9 +31,9 @@ try{
  await command({type:'select',id:selected.id});await command({type:'start',consent:true,sourceId:selected.id,materials:[]});
  await wait(5500);assert.equal((await page.evaluate(()=>window.study.init())).snapshot.requests,0);
  const connected=await command({type:'connect'});assert.equal(connected.ok,true);
- await phone.goto(base+'/#code='+connected.value.code);await phone.getByRole('button',{name:'Ask to connect'}).click();
+ await phone.goto(base+'/#code='+connected.value.code);
  let devices=[];for(let i=0;i<50&&!devices.length;i++){devices=(await page.evaluate(()=>window.study.init())).relay.devices;await wait(100);}
- assert.equal(devices.length,1);await command({type:'approve',id:devices[0].id});
+ assert.equal(devices.length,1);assert.equal(devices[0].approved,true);
  const scan=phone.getByRole('button',{name:'Scan now',exact:true});await expect(scan).toBeEnabled({timeout:15000});await scan.click();
  await phone.locator('.answer-box').waitFor({timeout:20000});assert.equal(await phone.locator('.answer-box .prose').innerText(),'4');
  assert.equal(await phone.getByText('Why this answer',{exact:true}).count(),0);
@@ -49,6 +49,6 @@ try{
  const calls=await app.evaluate(()=>globalThis.__studyTestCalls);assert.equal(calls.length,2);assert.ok(calls.every(c=>c.hasImage));assert.ok(!JSON.stringify(calls[1].schema).includes('explanation'));
  assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  await phone.screenshot({path:'test-results/manual-phone.png',fullPage:true});
- const report={checks:['no automatic snapshot after enabling','phone tap travels through relay to Windows capture','plain answer delivered to phone','no timer-triggered AI requests','unchanged scan deduplicates','pause disables and resume enables button','closed source disables scans','Stop disables button','answer schema has no explanations','390px phone layout fits'],liveAI:false,realPhone:false};
+ const report={checks:['QR pairing connects without desktop confirmation','no automatic snapshot after enabling','phone tap travels through relay to Windows capture','plain answer delivered to phone','no timer-triggered AI requests','unchanged scan deduplicates','pause disables and resume enables button','closed source disables scans','Stop disables button','answer schema has no explanations','390px phone layout fits'],liveAI:false,realPhone:false};
  await writeFile('test-results/manual-scan-smoke.json',JSON.stringify(report,null,2));console.log(report);
 }finally{await browser.close();await app.close();await relay.shutdown();}

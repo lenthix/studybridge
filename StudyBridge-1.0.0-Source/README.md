@@ -1,10 +1,10 @@
-# StudyBridge 1.1.0
+# StudyBridge 1.1.1
 
 A Windows desktop study companion built with Electron, TypeScript and React. Choose material, approve sharing, and receive numbered suggested answers locally or on an approved phone. The app never fills or submits website answers and never controls an external browser.
 
 ## Recipient installation
 
-Open `release/1.1.0/StudyBridge-1.1.0-Setup.exe`. The installer bundles the runtime, provides a Start-menu entry, an optional desktop shortcut and a Windows uninstall entry. The portable alternative is `StudyBridge-1.1.0-Portable.exe`. Recipients need no developer tools.
+Open `release/1.1.1/StudyBridge-1.1.1-Setup.exe`. The installer bundles the runtime, provides a Start-menu entry, an optional desktop shortcut and a Windows uninstall entry. The portable alternative is `StudyBridge-1.1.1-Portable.exe`. Recipients need no developer tools.
 
 **Both builds are unsigned.** No signing identity was available. Windows may display publisher or reputation warnings. This project does not recommend bypassing Windows security warnings; obtain a signed release from a trusted maintainer if required by your policy.
 
@@ -14,11 +14,11 @@ Choose a screen/window from the visual picker, import images or a PDF, or paste 
 
 ## Phone pairing
 
-The existing viewer is https://studybridge-eczn.onrender.com. Upgrade both desktop and hosted source to 1.1.0 for the phone scan button. Desktop-only imported material does not depend on hosting.
+The existing viewer is https://studybridge-eczn.onrender.com. Upgrade both desktop and hosted source to 1.1.1 for the phone scan button. Desktop-only imported material does not depend on hosting.
 
 A maintainer must deploy the included relay/viewer once, following [DEPLOYMENT.md](DEPLOYMENT.md). Managed hosting can supply an HTTPS address without buying a domain. Put the actual deployed origin in Settings; no production address is invented or hardcoded.
 
-Click Connect phone. Scan the QR, or open that hosted address on a phone and type the ten-character join code. Enter a phone name. Compare the verification number on both screens and approve on the desktop. The code is valid for five minutes and consumed on the first join attempt. Use New join code for each additional device. Sessions expire after two hours. Use Revoke or Disconnect all phones to remove access.
+Click Connect phone. Scan the QR, or open that hosted address on a phone and type the ten-character join code. Enter a phone name. The one-use code grants immediate access; no laptop confirmation is required. Keep the code private. The code is valid for five minutes and consumed on the first join attempt. Use New join code for each additional device. Sessions expire after two hours. Use Revoke or Disconnect all phones to remove access.
 
 The viewer includes stable ordering, search, bookmarks, needs-review filtering, previous/next, optional follow-newest, plain answers, code blocks, equations and source images. Bookmarks are temporary UI state. Pairing credentials live in phone tab session storage; no AI key is transmitted. Reconnects replace the current versioned snapshot rather than appending duplicate answers. A relay restart expires all sessions and requires pairing again.
 

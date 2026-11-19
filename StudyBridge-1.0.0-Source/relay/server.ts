@@ -54,7 +54,7 @@ export function createRelay(options:{origin?:string;now?:()=>number;ttl?:number;
     const key='join:'+(req.ip||req.socket.remoteAddress);let b=buckets.get(key);if(!b||now()-b.at>60000){b={n:0,at:now()};buckets.set(key,b);}if(++b.n>5)return res.status(429).json({error:'Too many pairing attempts. Wait one minute.'});
     const p=z.object({code:z.string().regex(/^[A-F0-9]{10}$/),name:z.string().trim().min(1).max(60)}).safeParse(req.body);if(!p.success)return res.sendStatus(400);
     const s=[...sessions.values()].find(s=>live(s)&&s.code===p.data.code&&s.codeExpires>now());if(!s||s.devices.size>=8)return res.status(404).json({error:'Code expired or already used. Ask the desktop for a new code.'});
-    s.code='';const secret=token(),d:Device={id:token(),name:p.data.name,proof:randomBytes(3).toString('hex').toUpperCase(),secret:digest(secret),approved:false,expires:now()+codeTtl,sockets:new Set()};s.devices.set(d.id,d);res.json({session:s.id,device:d.id,secret,proof:d.proof,expires:s.expires});
+    s.code='';const secret=token(),d:Device={id:token(),name:p.data.name,proof:randomBytes(3).toString('hex').toUpperCase(),secret:digest(secret),approved:true,expires:now()+codeTtl,sockets:new Set()};s.devices.set(d.id,d);res.json({session:s.id,device:d.id,secret,proof:d.proof,expires:s.expires});
   });
   api.get('/api/sessions/:id/devices/:device/status',(req,res)=>{const s=live(sessions.get(req.params.id)),d=s?.devices.get(req.params.device);if(!s||!d||d.secret!==bearer(req)||(!d.approved&&d.expires<now()))return res.sendStatus(401);res.json({approved:d.approved});});
   if(options.staticDir)api.use(express.static(options.staticDir,{index:'index.html'}));

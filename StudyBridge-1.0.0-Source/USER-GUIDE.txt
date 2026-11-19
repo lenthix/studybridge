@@ -1,13 +1,13 @@
-StudyBridge 1.1.0 — Windows x64
+StudyBridge 1.1.1 — Windows x64
 
 UPDATE
-Close StudyBridge and run StudyBridge-1.1.0-Setup.exe. Your existing settings and saved API key stay in the same Windows profile. Update the hosted viewer too, then refresh your phone and pair again.
+Close StudyBridge and run StudyBridge-1.1.1-Setup.exe. Your existing settings and saved API key stay in the same Windows profile. Update the hosted viewer too, then refresh your phone and pair again.
 
 SCAN FROM YOUR PHONE
 1. Open StudyBridge on the computer. Keep it awake and connected.
 2. In Settings, use https://studybridge-eczn.onrender.com as the hosted viewer address and save.
 3. Choose a screen or window. Approve sharing, then click Enable phone scans.
-4. Connect phone, open the QR/link on your phone, compare the verification number under Connection details, and approve on the computer.
+4. Connect phone, open the QR/link on your phone or enter the one-use code. It connects immediately; no laptop confirmation. Keep your code private.
 5. Tap Scan now on the phone. It requests ONE snapshot and shows numbered answers. No explanations and no timed captures.
 6. Wait for the answer before scanning again. Unchanged content reuses existing answers.
 7. Pause disables scans; Resume enables them again. Stop cancels active work and disables scans. After Stop, choose New session to start again.
