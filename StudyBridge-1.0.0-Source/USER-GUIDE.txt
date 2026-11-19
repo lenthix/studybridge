@@ -1,0 +1,32 @@
+StudyBridge 1.0.0 — Windows x64
+
+INSTALL
+Open StudyBridge-1.0.0-Setup.exe. Choose the installation location and shortcut options. Launch StudyBridge from Start or the desktop shortcut. A portable executable is also included.
+
+This release is unsigned because no signing certificate was available. Obtain a signed release from a trusted maintainer if Windows or your organization requires it. Do not disable Windows security protections to install it.
+
+FIRST USE
+1. Complete the welcome screen.
+2. In Settings, enter your own OpenAI API key and save. API usage costs credits separately from a ChatGPT subscription.
+3. Choose a screen/window, import an image or PDF, or paste study text.
+4. Review the preview. Approve sending the chosen material, then click Start.
+5. Read the numbered suggested answers and explanations. Check anything marked Needs review.
+6. Pause stops new captures and queued requests; active answers may finish. Stop cancels active work. The top bar always has Stop now.
+7. New session clears the current session and resets its request and spending counters.
+
+PHONE
+The phone viewer must first be hosted by a maintainer. No public viewer is deployed in this release.
+After hosting, put the actual HTTPS viewer address in Settings. Click Connect phone. Scan the QR or type the code into that address on your phone. Compare the verification numbers, then approve on the desktop. Codes last five minutes and can be used once. Sessions last two hours. Use New join code for another device. Revoke access or Disconnect all phones when finished.
+
+PRIVACY
+History is off by default. Optional local history and the API key use Windows-backed encryption. Delete them in Settings. Approved phones receive relevant source images and answers; the relay host can see shared study data. The phone never receives your AI API key.
+
+The optional “Protect app window from screen capture” asks Windows to exclude this app from supported capture methods. It is not invisibility. On Windows 11 build 22631, the tested Electron thumbnail capture still returned a non-black app thumbnail while protection was enabled. Other capture tools are unverified. This does not protect unrelated windows, stop cameras or malicious software, or revoke website screen-sharing permissions.
+
+LIMITS
+Answers can be wrong. Only chosen visible or imported material can be read. The app does not fill or submit website answers. Budget numbers are estimates, not invoices or guaranteed provider billing limits. Failed/cancelled requests can still be charged. Retries require confirmation.
+
+PDFs: up to 20 pages per file, 20 MB per file, 24 MB total submitted input per Start. Use smaller batches for large documents. Review blurry text/graphs manually.
+
+VERIFICATION
+Automated and local Windows/browser checks are documented in VERIFICATION.md. Live OpenAI calls, public HTTPS deployment, a physical phone, and clean-machine installation were not verified without those external resources.
